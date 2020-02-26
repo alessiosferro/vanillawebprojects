@@ -28,40 +28,6 @@ new (class {
     }
   }
 
-  doubleMoney() {
-    this.data = this.data.map(user => {
-      return {
-        ...user,
-        money: user.money * 2
-      };
-    });
-
-    this.updateDOM();
-  }
-
-  sortByRichest() {
-    this.data = this.data.sort((a, b) => b.money - a.money);
-
-    this.updateDOM();
-  }
-
-  calculateWealth() {
-    const wealth = this.data.reduce((acc, user) => (acc += user.money), 0);
-
-    let wealthElem = document.createElement('div');
-    wealthElem.innerHTML = `<h3>Total Wealth: <strong>${this.formatMoney(
-      wealth
-    )}</strong></h3>`;
-    this.mainElem.appendChild(wealthElem);
-  }
-
-  showMillionaires() {
-    const ONE_MILLION = 1000000;
-
-    this.data = this.data.filter(user => user.money > ONE_MILLION);
-    this.updateDOM();
-  }
-
   async addUser() {
     let randomUser = await this.getRandomUser();
     this.updateData(randomUser);
@@ -99,5 +65,39 @@ new (class {
 
   formatMoney(number) {
     return '€' + number.toFixed(2).replace(/\d(?=(\d{3})+\.)/g, '$&,');
+  }
+
+  doubleMoney() {
+    this.data = this.data.map(user => {
+      return {
+        ...user,
+        money: user.money * 2
+      };
+    });
+
+    this.updateDOM();
+  }
+
+  sortByRichest() {
+    this.data = this.data.sort((a, b) => b.money - a.money);
+
+    this.updateDOM();
+  }
+
+  showMillionaires() {
+    const ONE_MILLION = 1000000;
+
+    this.data = this.data.filter(user => user.money > ONE_MILLION);
+    this.updateDOM();
+  }
+
+  calculateWealth() {
+    const wealth = this.data.reduce((acc, user) => (acc += user.money), 0);
+
+    let wealthElem = document.createElement('div');
+    wealthElem.innerHTML = `<h3>Total Wealth: <strong>${this.formatMoney(
+      wealth
+    )}</strong></h3>`;
+    this.mainElem.appendChild(wealthElem);
   }
 })();
