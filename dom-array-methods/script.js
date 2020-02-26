@@ -1,96 +1,103 @@
-const main = document.getElementById('main');
-const addUserBtn = document.getElementById('add-user');
-const doubleBtn = document.getElementById('double');
-const showMillionairesBtn = document.getElementById('show-millionaires');
-const sortBtn = document.getElementById('sort');
-const calculateWealthBtn = document.getElementById('calculate-wealth');
+new (class {
+  apiUrl = 'https://randomuser.me/api';
+  data = [];
 
-let data = [];
+  constructor() {
+    this.mainElem = document.getElementById('main');
+    this.addUserBtn = document.getElementById('add-user');
+    this.doubleBtn = document.getElementById('double');
+    this.showMillBtn = document.getElementById('show-millionaires');
+    this.sortBtn = document.getElementById('sort');
+    this.calcWealthBtn = document.getElementById('calculate-wealth');
 
-getRandomUser();
-getRandomUser();
-getRandomUser();
+    this.addEventListeners();
+    this.getInitialData();
+  }
 
-// Fetch random user and add money
-async function getRandomUser() {
-  const res = await fetch('https://randomuser.me/api');
-  const data = await res.json();
+  addEventListeners() {
+    this.addUserBtn.addEventListener('click', () => this.addUser());
+    this.doubleBtn.addEventListener('click', () => this.doubleMoney());
+    this.sortBtn.addEventListener('click', () => this.sortByRichest());
+    this.showMillBtn.addEventListener('click', () => this.showMillionaires());
+    this.calcWealthBtn.addEventListener('click', () => this.calculateWealth());
+  }
 
-  const user = data.results[0];
+  getInitialData() {
+    for (let i = 0; i < 3; i++) {
+      this.addUser();
+    }
+  }
 
-  const newUser = {
-    name: `${user.name.first} ${user.name.last}`,
-    money: Math.floor(Math.random() * 1000000)
-  };
+  doubleMoney() {
+    this.data = this.data.map(user => {
+      return {
+        ...user,
+        money: user.money * 2
+      };
+    });
 
-  addData(newUser);
-}
+    this.updateDOM();
+  }
 
-// Double eveyones money
-function doubleMoney() {
-  data = data.map(user => {
-    return { ...user, money: user.money * 2 };
-  });
+  sortByRichest() {
+    this.data = this.data.sort((a, b) => b.money - a.money);
 
-  updateDOM();
-}
+    this.updateDOM();
+  }
 
-// Sort users by richest
-function sortByRichest() {
-  console.log(123);
-  data.sort((a, b) => b.money - a.money);
+  calculateWealth() {
+    const wealth = this.data.reduce((acc, user) => (acc += user.money), 0);
 
-  updateDOM();
-}
+    let wealthElem = document.createElement('div');
+    wealthElem.innerHTML = `<h3>Total Wealth: <strong>${this.formatMoney(
+      wealth
+    )}</strong></h3>`;
+    this.mainElem.appendChild(wealthElem);
+  }
 
-// Filter only millionaires
-function showMillionaires() {
-  data = data.filter(user => user.money > 1000000);
+  showMillionaires() {
+    const ONE_MILLION = 1000000;
 
-  updateDOM();
-}
+    this.data = this.data.filter(user => user.money > ONE_MILLION);
+    this.updateDOM();
+  }
 
-// Calculate the total wealth
-function calculateWealth() {
-  const wealth = data.reduce((acc, user) => (acc += user.money), 0);
+  async addUser() {
+    let randomUser = await this.getRandomUser();
+    this.updateData(randomUser);
+    this.updateDOM();
+  }
 
-  const wealthEl = document.createElement('div');
-  wealthEl.innerHTML = `<h3>Total Wealth: <strong>${formatMoney(
-    wealth
-  )}</strong></h3>`;
-  main.appendChild(wealthEl);
-}
+  async getRandomUser() {
+    let request = await fetch(this.apiUrl);
+    let response = await request.json();
+    let user = response.results[0];
+    return new Promise(resolve =>
+      resolve({
+        name: `${user.name.first} ${user.name.last}`,
+        money: Math.floor(Math.random() * 1000000)
+      })
+    );
+  }
 
-// Add new obj to data arr
-function addData(obj) {
-  data.push(obj);
+  updateData(newData) {
+    this.data.push(newData);
+  }
 
-  updateDOM();
-}
+  updateDOM(providedData = this.data) {
+    this.mainElem.innerHTML = '<h2><strong>Person</strong> Wealth</h2>';
 
-// Update DOM
-function updateDOM(providedData = data) {
-  // Clear main div
-  main.innerHTML = '<h2><strong>Person</strong> Wealth</h2>';
+    providedData.forEach(item => {
+      let divElem = document.createElement('div');
+      divElem.classList.add('person');
+      divElem.innerHTML = `<strong>${item.name}</strong> ${this.formatMoney(
+        item.money
+      )}`;
+      this.mainElem.appendChild(divElem);
+    });
+  }
 
-  providedData.forEach(item => {
-    const element = document.createElement('div');
-    element.classList.add('person');
-    element.innerHTML = `<strong>${item.name}</strong> ${formatMoney(
-      item.money
-    )}`;
-    main.appendChild(element);
-  });
-}
-
-// Format number as money - https://stackoverflow.com/questions/149055/how-to-format-numbers-as-currency-string
-function formatMoney(number) {
-  return '$' + number.toFixed(2).replace(/\d(?=(\d{3})+\.)/g, '$&,');
-}
-
-// Event listeners
-addUserBtn.addEventListener('click', getRandomUser);
-doubleBtn.addEventListener('click', doubleMoney);
-sortBtn.addEventListener('click', sortByRichest);
-showMillionairesBtn.addEventListener('click', showMillionaires);
-calculateWealthBtn.addEventListener('click', calculateWealth);
+  formatMoney(number) {
+    return '€' + number.toFixed(2).replace(/\d(?=(\d{3})+\.)/g, '$&,');
+  }
+})();
